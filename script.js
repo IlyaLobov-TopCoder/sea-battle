@@ -4,6 +4,7 @@ buttonStart.onclick = function() {
     if (!player || !bot) {
         alert('Введите имена пользователей');
     } else {
+        // Обработка символов, потенциально сбивающих вёрстку 
         player = player.replace("<", "&lt;").replace(">", "&gt;");
         bot = bot.replace("<", "&lt;").replace(">", "&gt;");
 
@@ -26,6 +27,7 @@ class SeaBattle {
         this.gameFieldBorderY = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
         this.gameArea = document.getElementById(nameArea);
         this.gameArea.innerHTML = "";
+        // содержит информацию о количестве кораблей указанного размера
         this.shipsConfiguration = [
             { maxShips: 1, pointCount: 4 },
             { maxShips: 2, pointCount: 3 },
@@ -42,6 +44,7 @@ class SeaBattle {
         this.botName = bot;
         this.botDelay = 750;
         this._hitsForWin = 0;
+        // вычисление количества попаданий для победы
         for (var i = 0; i < this.shipsConfiguration.length; i++) {
             this._hitsForWin += this.shipsConfiguration[i].maxShips * this.shipsConfiguration[i].pointCount;
         }
@@ -69,6 +72,7 @@ class SeaBattle {
     }
 
     createGameFields() {
+        // Задание стилей горизонтальных букв
         function createSymbolsHorizontal(parent, x, y) {
             for (var i = 0; i < x.length; i++) {
                 let block = document.createElement('div');
@@ -80,6 +84,7 @@ class SeaBattle {
             }
         };
 
+        // Задание стилей вертикальных чисел
         function createNumbersVertical(parent, y) {
             for (var i = 0; i < y.length; i++) {
                 let block = document.createElement('div');
@@ -235,6 +240,7 @@ class SeaBattle {
         return block;
     }
 
+    // Получение ID игровой ячейки
     getPointBlockIdByCoords(yPoint, xPoint, type) {
         return type + '_x' + xPoint + '_y' + yPoint;
     }
@@ -399,8 +405,10 @@ class SeaBattle {
         this._botShotMap.splice(randomShotIndex, 1);
         var firedEl = document.getElementById(this.getPointBlockIdByCoords(randomShot.y, randomShot.x, 'player'));
         if (this._playerShipsMap[randomShot.y][randomShot.x] == this.EMPTY_CELL) {
+            // если компьютер промахнулся
             firedEl.innerHTML = this.getFireFailValue();
         } else {
+            // если компьютер попал
             firedEl.innerHTML = this.getFireSuccessValue();
             this._botHits++;
             this.updateInformationArea();
