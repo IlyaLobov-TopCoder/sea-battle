@@ -82,6 +82,10 @@ body {
     color: #003b46;
 }
 
+#gameArea .gameField .ship {
+    background-color: #66a5ad;
+}
+
 #gameArea {
     margin: 50px auto;
 }
