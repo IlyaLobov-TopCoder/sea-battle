@@ -141,10 +141,13 @@ class SeaBattle {
         for (var yPoint = 0; yPoint < this.gameFieldBorderY.length; yPoint++) {
             for (var xPoint = 0; xPoint < this.gameFieldBorderX.length; xPoint++) {
                 var botPointBlock = this.createPointBlock(yPoint, xPoint, 'bot');
+                botPointBlock.onclick = function(e) {
+                    this.playerFire(e);
+                }.bind(this);
                 // отображение кораблей компьютера
-                if (this._botShipsMap[yPoint][xPoint] === this.CELL_WITH_SHIP) {
-                    botPointBlock.setAttribute('class', 'ship');
-                }
+                // if (this._botShipsMap[yPoint][xPoint] === this.CELL_WITH_SHIP) {
+                //     botPointBlock.setAttribute('class', 'ship');
+                // }
                 var playerPointBlock = this.createPointBlock(yPoint, xPoint, 'player');
                 // отображение кораблей игрока
                 if (this._playerShipsMap[yPoint][xPoint] === this.CELL_WITH_SHIP) {
@@ -285,5 +288,28 @@ class SeaBattle {
             }
         }
         return freePoints >= shipLength;
+    }
+
+    // Обработка нажатия на ячейку
+    playerFire(event) {
+        var e = event || window.event;
+        var firedEl = e.target || e.srcElement;
+        var x = firedEl.getAttribute('data-x');
+        var y = firedEl.getAttribute('data-y');
+        if (this._botShipsMap[y][x] == this.EMPTY_CELL) {
+            firedEl.innerHTML = this.getFireFailValue();
+        } else {
+            firedEl.innerHTML = this.getFireSuccessValue();
+            firedEl.setAttribute('class', 'ship');
+        }
+        firedEl.onclick = null;
+    }
+
+    getFireSuccessValue() {
+        return '&#10006;';
+    }
+
+    getFireFailValue() {
+        return '&#8226;';
     }
 };
