@@ -1,16 +1,99 @@
+html {
+    line-height: 1.15;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
 body {
-    font: 18px "Lucida Sans Unicode";
-    padding: 50px 0;
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #333;
+    background-color: #fff;
+}
+
+#gameArea {
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 15px;
+    background-color: #3AAFAB;
+    border-radius: 25px;
+}
+
+.fields {
+    display: flex;
+}
+
+.symbolsHoriz {
+    width: 96%;
+    font-size: 20px;
+    display: flex;
+}
+
+.symbolsVert {
+    width: 5%;
+    font-size: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 67px;
+    margin-bottom: 20px;
+    user-select: none;
+}
+
+#gameArea .numbers,
+#gameArea .symbols {
+    font-size: 20px;
+    text-align: center;
+}
+
+#gameArea .playerInfo,
+#gameArea .botInfo {
+    font-size: 20px;
+    text-align: center;
+    width: 95%;
+    padding: 0 0 7px 0;
+}
+
+#gameArea .botGameArea,
+#gameArea .playerGameArea {
+    user-select: none;
+    width: 45%;
+    float: left;
+    padding: 0;
+    display: block;
+    margin-bottom: 20px;
+}
+
+#gameArea .gameField {
+    margin: 5px 15px 0 0;
+    display: block;
+    padding: 0;
+}
+
+#gameArea .gameField div {
+    margin: -1px;
+    display: block;
+    position: relative;
+    float: left;
+    background-color: #fcfcfc;
+    border: 1px solid #003b46;
+    text-align: center;
+    color: #003b46;
+}
+
+#gameArea {
+    margin: 50px auto;
 }
 
 .container {
     background: #3AAFAB;
     color: #fff;
-    margin: 0 auto;
+    margin: 50px auto;
     width: 550px;
     height: 220px;
     left: calc(50% - 500px/2);
-    top: calc(50% - 350px/2 - 175px);
+    top: 50px;
     border-radius: 25px;
     padding: 20px;
 }
@@ -33,6 +116,7 @@ label {
     letter-spacing: .05em;
     text-transform: uppercase;
     flex: 1 0 100px;
+    font: 18px "Lucida Sans Unicode";
 }
 
 input {
