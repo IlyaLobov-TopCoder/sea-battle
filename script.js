@@ -46,8 +46,6 @@ class SeaBattle {
             this._hitsForWin += this.shipsConfiguration[i].maxShips * this.shipsConfiguration[i].pointCount;
         }
 
-        this._blockHeight = null;
-
         this.botInfo = null;
         this.playerInfo = null;
         this.fieldSymbols = null;
@@ -122,13 +120,11 @@ class SeaBattle {
         // создание поля с именем игрока
         this.playerInfo = document.createElement('div');
         this.playerInfo.setAttribute('class', 'playerInfo');
-        this.playerInfo.innerHTML = this.playerName;
         playerGameArea.appendChild(this.playerInfo);
 
         // создание поля с именем компьютера
         this.botInfo = document.createElement('div');
         this.botInfo.setAttribute('class', 'botInfo');
-        this.botInfo.innerHTML = this.botName;
         botGameArea.appendChild(this.botInfo);
 
         // создание горизонтальных букв около поля игрока
@@ -146,10 +142,11 @@ class SeaBattle {
         // создание игрового поля компьютера
         this.botGameField = document.createElement('div');
         this.botGameField.setAttribute('class', 'gameField');
+        botGameArea.appendChild(this.botGameField);
+
         // создание игрового поля игрока
         this.playerGameField = document.createElement('div');
         this.playerGameField.setAttribute('class', 'gameField');
-        botGameArea.appendChild(this.botGameField);
         playerGameArea.appendChild(this.playerGameField);
     }
 
@@ -351,7 +348,6 @@ class SeaBattle {
         if (this._gameStopped || this._botGoing) {
             return;
         }
-
         var e = event || window.event;
         var firedEl = e.target || e.srcElement;
         var x = firedEl.getAttribute('data-x');
@@ -439,8 +435,10 @@ class SeaBattle {
         if (this._gameStopped) {
             if (this._playerHits >= this._hitsForWin) {
                 this.informationArea.innerHTML = 'Победил ' + this.playerName + '!';
+                this.informationArea.setAttribute('class', 'informationAreaWin');
             } else {
                 this.informationArea.innerHTML = 'Победил ' + this.botName + '!';
+                this.informationArea.setAttribute('class', 'informationAreaWin');
             }
         } else if (this._botGoing) {
             this.informationArea.setAttribute('class', 'informationArea');
