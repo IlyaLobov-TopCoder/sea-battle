@@ -13,8 +13,10 @@ buttonStart.onclick = function() {
 
         let container = document.querySelector('.container');
         container.parentNode.removeChild(container);
+
         var game = new SeaBattle('gameArea', player, bot);
         game.createElements();
+        game.startNewGame();
     }
 };
 
@@ -32,6 +34,7 @@ class SeaBattle {
         ];
         this._botShipsMap = null;
         this._playerShipsMap = null;
+        this._gameStopped = false;
         this.CELL_WITH_SHIP = true;
         this.EMPTY_CELL = false;
 
@@ -49,16 +52,22 @@ class SeaBattle {
         this.playerInfo = null;
         this.fieldSymbols = null;
         this.fieldNumbers = null;
+        this.informationArea = null;
+        this.startGameButton = null;
         this.botGameField = null;
         this.playerGameField = null;
     }
 
     createElements() {
+        this.createInformationArea();
         this.createGameFields();
-        this._botShipsMap = this.generateRandomShipMap();
-        this._playerShipsMap = this.generateRandomShipMap();
-        this._botShotMap = this.generateShotMap();
-        this.drawGamePoints();
+        this.createFooterButton();
+    }
+
+    createInformationArea() {
+        this.informationArea = document.createElement('div');
+        this.informationArea.setAttribute('class', 'informationArea');
+        this.gameArea.appendChild(this.informationArea);
     }
 
     createGameFields() {
@@ -134,12 +143,44 @@ class SeaBattle {
         createSymbolsHorizontal(this.fieldSymbols, this.gameFieldBorderX, this.gameFieldBorderY);
         botGameArea.appendChild(this.fieldSymbols);
 
+        // создание игрового поля компьютера
         this.botGameField = document.createElement('div');
         this.botGameField.setAttribute('class', 'gameField');
+        // создание игрового поля игрока
         this.playerGameField = document.createElement('div');
         this.playerGameField.setAttribute('class', 'gameField');
         botGameArea.appendChild(this.botGameField);
         playerGameArea.appendChild(this.playerGameField);
+    }
+
+    // Создание кнопки под игровыми полями
+    createFooterButton() {
+        var footer = document.createElement('div');
+        footer.setAttribute('class', 'footer');
+        this.startGameButton = document.createElement('button');
+        this.startGameButton.setAttribute('class', 'btn');
+        this.startGameButton.onclick = function() {
+            this.startNewGame();
+        }.bind(this);
+        footer.appendChild(this.startGameButton);
+        this.gameArea.appendChild(footer);
+    }
+
+    // Запуск новой игры
+    startNewGame() {
+        this.startGameButton.innerHTML = 'Начать заново';
+        this.botInfo.innerHTML = this.botName;
+        this.playerInfo.innerHTML = this.playerName;
+        this._botShipsMap = this.generateRandomShipMap();
+        this._playerShipsMap = this.generateRandomShipMap();
+        this._botShotMap = this.generateShotMap();
+        this._playerHits = 0;
+        this._botHits = 0;
+        this._blockHeight = null;
+        this._gameStopped = false;
+        this._botGoing = false;
+        this.drawGamePoints();
+        this.updateInformationArea();
     }
 
     // Создание игровых ячеек
@@ -163,21 +204,28 @@ class SeaBattle {
         }
     }
 
-    // Создание ячеек, в которых могут размещаться корабли     
+    // Создание или перезапись ячеек, в которых могут размещаться корабли     
     createPointBlock(yPoint, xPoint, type) {
         var id = this.getPointBlockIdByCoords(yPoint, xPoint, type);
-        // создание ячейки с определенным id
-        var block = document.createElement('div');
-        block.setAttribute('id', id);
-        block.setAttribute('data-x', xPoint);
-        block.setAttribute('data-y', yPoint);
-
-        if (type && type === 'player') {
-            // добавление ячейки на поле пользователя
-            this.playerGameField.appendChild(block);
+        var block = document.getElementById(id);
+        // перезапись существующей ячейки в ситуации перезапуска игры
+        if (block) {
+            block.innerHTML = '';
+            block.setAttribute('class', '');
         } else {
-            // добавление ячейки на поле компьютера
-            this.botGameField.appendChild(block);
+            // создание ячейки с определенным id
+            block = document.createElement('div');
+            block.setAttribute('id', id);
+            block.setAttribute('data-x', xPoint);
+            block.setAttribute('data-y', yPoint);
+
+            if (type && type === 'player') {
+                // добавление ячейки на поле пользователя
+                this.playerGameField.appendChild(block);
+            } else {
+                // добавление ячейки на поле компьютера
+                this.botGameField.appendChild(block);
+            }
         }
 
         block.style.width = (100 / this.gameFieldBorderY.length) + '%';
@@ -240,6 +288,7 @@ class SeaBattle {
         return map;
     }
 
+    // Получение случайного числа в заданном диапазоне
     getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
@@ -298,8 +347,8 @@ class SeaBattle {
 
     // Обработка нажатия на ячейку
     playerFire(event) {
-        // Если ход бота, то запрещаем атаковать ячейки
-        if (this._botGoing) {
+        // Если ход бота или игра остановлена, то запрещаем атаковать ячейки
+        if (this._gameStopped || this._botGoing) {
             return;
         }
 
@@ -313,6 +362,11 @@ class SeaBattle {
         } else {
             firedEl.innerHTML = this.getFireSuccessValue();
             firedEl.setAttribute('class', 'ship');
+            this._playerHits++;
+            this.updateInformationArea();
+            if (this._playerHits >= this._hitsForWin) {
+                this.stopGame();
+            }
         }
         firedEl.onclick = null;
     }
@@ -320,6 +374,7 @@ class SeaBattle {
     // Создание задержки перед ходом компьютера для улучшения игрового процесса
     prepareToBotFire() {
         this._botGoing = true;
+        this.updateInformationArea();
         setTimeout(function() {
             this.botFire();
         }.bind(this), this.botDelay);
@@ -338,6 +393,9 @@ class SeaBattle {
 
     // Выполнение выстрела компьютером 
     botFire() {
+        if (this._gameStopped) {
+            return;
+        }
         // создание случайного индекса выстрела из сгенерированной карты выстрелов для компьютера
         var randomShotIndex = this.getRandomInt(0, this._botShotMap.length);
         var randomShot = JSON.parse(JSON.stringify(this._botShotMap[randomShotIndex]));
@@ -348,9 +406,24 @@ class SeaBattle {
             firedEl.innerHTML = this.getFireFailValue();
         } else {
             firedEl.innerHTML = this.getFireSuccessValue();
-            this.prepareToBotFire();
+            this._botHits++;
+            this.updateInformationArea();
+            if (this._botHits >= this._hitsForWin) {
+                this.stopGame();
+            } else {
+                this.prepareToBotFire();
+            }
         }
         this._botGoing = false;
+        this.updateInformationArea();
+    }
+
+    // Остановка игры
+    stopGame() {
+        this._gameStopped = true;
+        this._botGoing = false;
+        this.startGameButton.innerHTML = 'Сыграть еще раз';
+        this.updateInformationArea();
     }
 
     getFireSuccessValue() {
@@ -359,5 +432,22 @@ class SeaBattle {
 
     getFireFailValue() {
         return '&#8226;';
+    }
+
+    // Отображение игровой ситуации на поле
+    updateInformationArea() {
+        if (this._gameStopped) {
+            if (this._playerHits >= this._hitsForWin) {
+                this.informationArea.innerHTML = 'Победил ' + this.playerName + '!';
+            } else {
+                this.informationArea.innerHTML = 'Победил ' + this.botName + '!';
+            }
+        } else if (this._botGoing) {
+            this.informationArea.setAttribute('class', 'informationArea');
+            this.informationArea.innerHTML = 'Ходит ' + this.botName;
+        } else {
+            this.informationArea.setAttribute('class', 'informationArea');
+            this.informationArea.innerHTML = 'Ходит ' + this.playerName;
+        }
     }
 };

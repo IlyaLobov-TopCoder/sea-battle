@@ -65,6 +65,20 @@ body {
     margin-bottom: 20px;
 }
 
+#gameArea .footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#gameArea .informationArea {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin: 10px;
+}
+
 #gameArea .gameField {
     margin: 5px 15px 0 0;
     display: block;
