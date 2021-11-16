@@ -37,6 +37,11 @@ class SeaBattle {
 
         this.playerName = player;
         this.botName = bot;
+        this.botDelay = 750;
+        this._hitsForWin = 0;
+        for (var i = 0; i < this.shipsConfiguration.length; i++) {
+            this._hitsForWin += this.shipsConfiguration[i].maxShips * this.shipsConfiguration[i].pointCount;
+        }
 
         this._blockHeight = null;
 
@@ -52,6 +57,7 @@ class SeaBattle {
         this.createGameFields();
         this._botShipsMap = this.generateRandomShipMap();
         this._playerShipsMap = this.generateRandomShipMap();
+        this._botShotMap = this.generateShotMap();
         this.drawGamePoints();
     }
 
@@ -292,17 +298,59 @@ class SeaBattle {
 
     // Обработка нажатия на ячейку
     playerFire(event) {
+        // Если ход бота, то запрещаем атаковать ячейки
+        if (this._botGoing) {
+            return;
+        }
+
         var e = event || window.event;
         var firedEl = e.target || e.srcElement;
         var x = firedEl.getAttribute('data-x');
         var y = firedEl.getAttribute('data-y');
         if (this._botShipsMap[y][x] == this.EMPTY_CELL) {
             firedEl.innerHTML = this.getFireFailValue();
+            this.prepareToBotFire();
         } else {
             firedEl.innerHTML = this.getFireSuccessValue();
             firedEl.setAttribute('class', 'ship');
         }
         firedEl.onclick = null;
+    }
+
+    // Создание задержки перед ходом компьютера для улучшения игрового процесса
+    prepareToBotFire() {
+        this._botGoing = true;
+        setTimeout(function() {
+            this.botFire();
+        }.bind(this), this.botDelay);
+    }
+
+    // Создание массива координат ячеек, по которым случайным образом будет стрелять компьютер
+    generateShotMap() {
+        let map = [];
+        for (var yPoint = 0; yPoint < this.gameFieldBorderY.length; yPoint++) {
+            for (var xPoint = 0; xPoint < this.gameFieldBorderX.length; xPoint++) {
+                map.push({ y: yPoint, x: xPoint });
+            }
+        }
+        return map;
+    }
+
+    // Выполнение выстрела компьютером 
+    botFire() {
+        // создание случайного индекса выстрела из сгенерированной карты выстрелов для компьютера
+        var randomShotIndex = this.getRandomInt(0, this._botShotMap.length);
+        var randomShot = JSON.parse(JSON.stringify(this._botShotMap[randomShotIndex]));
+        // удаление случайного индекса для предотвращения повторных выстрелов
+        this._botShotMap.splice(randomShotIndex, 1);
+        var firedEl = document.getElementById(this.getPointBlockIdByCoords(randomShot.y, randomShot.x, 'player'));
+        if (this._playerShipsMap[randomShot.y][randomShot.x] == this.EMPTY_CELL) {
+            firedEl.innerHTML = this.getFireFailValue();
+        } else {
+            firedEl.innerHTML = this.getFireSuccessValue();
+            this.prepareToBotFire();
+        }
+        this._botGoing = false;
     }
 
     getFireSuccessValue() {
